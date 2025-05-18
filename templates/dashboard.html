@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - File Manager{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>Welcome, {{ current_user.username }}!</h2>
+        
+        <!-- File Upload Form -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h4>Upload File</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('upload_file') }}" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="file" class="form-label">Select File (PDF, PNG, JPG only)</label>
+                        <input type="file" class="form-control" id="file" name="file" accept=".pdf,.png,.jpg,.jpeg" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Upload</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- File List -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h4>Your Files</h4>
+            </div>
+            <div class="card-body">
+                {% if files %}
+                    <div class="list-group">
+                        {% for file in files %}
+                            <div class="list-group-item file-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h5 class="mb-1">{{ file.original_filename }}</h5>
+                                        <small class="text-muted">
+                                            Uploaded: {{ file.upload_date.strftime('%Y-%m-%d %H:%M:%S') }}
+                                            ({{ file.file_type }})
+                                        </small>
+                                    </div>
+                                    <div>
+                                        {% if file.file_type in ['png', 'jpg', 'jpeg'] %}
+                                            <button type="button" class="btn btn-sm btn-info me-2" data-bs-toggle="modal" data-bs-target="#previewModal{{ file.id }}">
+                                                Preview
+                                            </button>
+                                        {% endif %}
+                                        <a href="{{ url_for('download_file', file_id=file.id) }}" class="btn btn-sm btn-primary me-2">Download</a>
+                                        <form method="POST" action="{{ url_for('delete_file', file_id=file.id) }}" class="d-inline">
+                                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this file?')">Delete</button>
+                                        </form>
+                                    </div>
+                                </div>
+                                {% if file.file_type in ['png', 'jpg', 'jpeg'] %}
+                                    <!-- Preview Modal -->
+                                    <div class="modal fade" id="previewModal{{ file.id }}" tabindex="-1" aria-labelledby="previewModalLabel{{ file.id }}" aria-hidden="true">
+                                        <div class="modal-dialog modal-lg">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="previewModalLabel{{ file.id }}">{{ file.original_filename }}</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body text-center">
+                                                    <img src="{{ url_for('preview_file', file_id=file.id) }}" class="img-fluid" alt="{{ file.original_filename }}">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-center">No files uploaded yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
